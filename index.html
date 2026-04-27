@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🀄 마작 게임</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ══════════════ SETUP SCREEN ══════════════ -->
+  <div id="setup-screen" class="screen active">
+    <div class="setup-box">
+      <h1>🀄 마작 게임</h1>
+      <p class="subtitle">1인 플레이어 vs 컴퓨터</p>
+
+      <div class="setup-section">
+        <h3>컴퓨터 플레이어 수</h3>
+        <div class="btn-group" id="player-count-group">
+          <button class="toggle-btn active" data-value="1">1명</button>
+          <button class="toggle-btn"        data-value="2">2명</button>
+          <button class="toggle-btn"        data-value="3">3명</button>
+        </div>
+        <p class="hint">총 2~4명 플레이 (나 + 컴퓨터)</p>
+      </div>
+
+      <div class="setup-section">
+        <h3>컴퓨터 레벨</h3>
+        <div class="btn-group" id="difficulty-group">
+          <button class="toggle-btn active" data-value="easy">초급<br><small>랜덤 버림</small></button>
+          <button class="toggle-btn"        data-value="medium">중급<br><small>연결패 우선</small></button>
+          <button class="toggle-btn"        data-value="hard">고급<br><small>최적 전략</small></button>
+        </div>
+      </div>
+
+      <button id="start-btn" class="start-btn">게임 시작</button>
+
+      <div class="rules-hint">
+        <details>
+          <summary>게임 방법</summary>
+          <ul>
+            <li>패를 클릭하면 선택(노란 강조), 한 번 더 클릭하면 버립니다.</li>
+            <li><strong>화료</strong>: 4조(세 장짜리 면자) + 1쌍(머리)으로 이루면 승리.</li>
+            <li><strong>쯔모</strong>: 자신이 뽑은 패로 화료.</li>
+            <li><strong>론</strong>: 상대가 버린 패로 화료.</li>
+            <li><strong>퐁</strong>: 상대가 버린 패 + 손패 2장으로 트리플 완성.</li>
+            <li><strong>치</strong>: 왼쪽 플레이어가 버린 패로 순자 완성.</li>
+            <li>치토이쯔(7쌍자)도 화료 인정.</li>
+          </ul>
+        </details>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ GAME SCREEN ══════════════ -->
+  <div id="game-screen" class="screen">
+
+    <!-- Top bar -->
+    <div id="game-info">
+      <span id="round-info">1국</span>
+      <span id="current-turn"></span>
+      <span id="wall-count">남은 패: 72</span>
+    </div>
+
+    <!-- Table -->
+    <div id="table">
+
+      <!-- ── Top player (computer 2) ── -->
+      <div class="player-zone top-zone" id="top-player" style="display:none">
+        <div class="player-label" id="top-label">컴퓨터 2</div>
+        <div class="hand-display" id="top-hand"></div>
+        <div class="discard-row">
+          <div class="melds-display" id="top-melds"></div>
+          <div class="discard-display" id="top-discards"></div>
+        </div>
+      </div>
+
+      <!-- ── Middle row ── -->
+      <div class="middle-row">
+
+        <!-- Left player (computer 3) -->
+        <div class="player-zone side-zone left-zone" id="left-player" style="display:none">
+          <div class="player-label" id="left-label">컴퓨터 3</div>
+          <div class="hand-display vertical" id="left-hand"></div>
+          <div class="melds-display" id="left-melds"></div>
+          <div class="discard-display vertical" id="left-discards"></div>
+        </div>
+
+        <!-- Center table -->
+        <div id="center-table">
+          <div id="wall-display">
+            <div class="wall-icon">🀫</div>
+            <div id="wall-number">72</div>
+            <div class="wall-label">패산</div>
+          </div>
+          <div id="last-discard-area"></div>
+          <div id="game-message"></div>
+        </div>
+
+        <!-- Right player (computer 1) -->
+        <div class="player-zone side-zone right-zone" id="right-player">
+          <div class="player-label" id="right-label">컴퓨터 1</div>
+          <div class="hand-display vertical" id="right-hand"></div>
+          <div class="melds-display" id="right-melds"></div>
+          <div class="discard-display vertical" id="right-discards"></div>
+        </div>
+
+      </div><!-- end .middle-row -->
+
+      <!-- ── Bottom player (human) ── -->
+      <div class="player-zone bottom-zone" id="bottom-player">
+        <div class="discard-row">
+          <div class="melds-display" id="bottom-melds"></div>
+          <div class="discard-display" id="bottom-discards"></div>
+        </div>
+        <div class="player-label" id="bottom-label">나 (동)</div>
+        <div class="hand-display" id="bottom-hand"></div>
+        <div id="action-buttons">
+          <button id="btn-tsumo" class="action-btn hidden">쯔모 (자신패 화료)</button>
+        </div>
+      </div>
+
+    </div><!-- end #table -->
+
+    <!-- Score strip -->
+    <div id="score-display"><div id="scores"></div></div>
+
+    <!-- ── Call prompt popup ── -->
+    <div id="call-popup" class="popup hidden">
+      <div class="popup-content call-content">
+        <h3 id="call-title">패 선택</h3>
+        <div id="call-tile-display"></div>
+        <div id="call-options"></div>
+        <div class="call-timer-bar"><div id="call-timer-fill"></div></div>
+      </div>
+    </div>
+
+    <!-- ── Win / exhausted popup ── -->
+    <div id="win-popup" class="popup hidden">
+      <div class="popup-content win-content">
+        <h2 id="win-title">화료!</h2>
+        <div id="win-hand-display"></div>
+        <div id="win-details"></div>
+        <div class="win-buttons">
+          <button id="next-round-btn" class="action-btn">다음 판</button>
+          <button id="end-game-btn"   class="action-btn secondary">게임 종료</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end #game-screen -->
+
+  <!-- ══════════════ RESULT SCREEN ══════════════ -->
+  <div id="result-screen" class="screen">
+    <div class="result-box">
+      <h2>🏆 게임 종료</h2>
+      <div id="final-scores"></div>
+      <button id="restart-btn" class="start-btn">다시 시작</button>
+    </div>
+  </div>
+
+  <!-- Scripts (no framework, vanilla JS only) -->
+  <script src="js/tiles.js"></script>
+  <script src="js/hand.js"></script>
+  <script src="js/ai.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
